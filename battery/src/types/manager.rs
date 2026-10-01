@@ -55,6 +55,38 @@ impl Manager {
         self.inner.refresh(battery)
     }
 }
+#[cfg(feature = "export")]
+impl Manager {
+    pub(crate) fn new_ffi() -> Option<Box<Manager>> {
+        match Manager::new() {
+            Ok(manager) => Some(Box::new(manager)),
+            Err(error) => {
+                crate::errors::set_ffi_error(error);
+                None
+            }
+        }
+    }
+
+    pub(crate) fn batteries_ffi(&self) -> Option<Box<Batteries>> {
+        match self.batteries() {
+            Ok(iterator) => Some(Box::new(iterator)),
+            Err(error) => {
+                crate::errors::set_ffi_error(error);
+                None
+            }
+        }
+    }
+
+    pub(crate) fn refresh_ffi(&mut self, battery: &mut Battery) -> core::ffi::c_int {
+        match self.refresh(battery) {
+            Ok(()) => 0,
+            Err(error) => {
+                crate::errors::set_ffi_error(error);
+                -1
+            }
+        }
+    }
+}
 
 impl fmt::Debug for Manager {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

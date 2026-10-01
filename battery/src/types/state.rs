@@ -6,7 +6,9 @@ use std::str;
 ///
 /// Unknown can mean either controller returned unknown,
 /// or not able to retrieve state due to some error.
+#[cfg_attr(feature = "co3", derive(co3::rust_spec::RustSpec, co3::ReprC))]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[repr(u8)]
 pub enum State {
     Unknown,
     Charging,
@@ -16,7 +18,7 @@ pub enum State {
 
     // Awaiting for https://github.com/rust-lang/rust/issues/44109
     #[doc(hidden)]
-    __Nonexhaustive,
+    __Nonexhaustive = 255,
 }
 
 impl str::FromStr for State {

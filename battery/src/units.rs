@@ -84,6 +84,7 @@ use num_traits::ToPrimitive;
 // in the most editors, and since there are a lot of different measurement units used,
 // I think it is a nice idea to highlight conversions, just to be sure proper units are used.
 
+#[allow(dead_code)]
 pub(crate) trait IntoQuantity<T>
 where
     T: ToPrimitive,
@@ -256,6 +257,7 @@ macro_rules! unit {
 /// For values in `0…1` ratio (or `0…100` %).
 ///
 /// Method `bound` caps value into this range.
+#[allow(dead_code)]
 pub(crate) trait Bound: Sized {
     fn into_bounded(self) -> Self;
 }

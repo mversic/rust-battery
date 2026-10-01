@@ -1,3 +1,5 @@
+#[cfg(feature = "export")]
+use std::ffi::c_float;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 
@@ -143,6 +145,68 @@ impl Battery {
     }
 }
 
+#[cfg(feature = "export")]
+impl Battery {
+    pub(crate) fn state_of_charge_ffi(&self) -> c_float {
+        self.state_of_charge().get::<crate::units::ratio::percent>()
+    }
+
+    pub(crate) fn energy_ffi(&self) -> c_float {
+        self.energy().get::<crate::units::energy::joule>()
+    }
+
+    pub(crate) fn energy_full_ffi(&self) -> c_float {
+        self.energy_full().get::<crate::units::energy::joule>()
+    }
+
+    pub(crate) fn energy_full_design_ffi(&self) -> c_float {
+        self.energy_full_design().get::<crate::units::energy::joule>()
+    }
+
+    pub(crate) fn energy_rate_ffi(&self) -> c_float {
+        self.energy_rate().get::<crate::units::power::watt>()
+    }
+
+    pub(crate) fn voltage_ffi(&self) -> c_float {
+        self.voltage().get::<crate::units::electric_potential::volt>()
+    }
+
+    pub(crate) fn state_of_health_ffi(&self) -> c_float {
+        self.state_of_health().get::<crate::units::ratio::percent>()
+    }
+
+    pub(crate) fn time_to_full_ffi(&self) -> c_float {
+        self.time_to_full()
+            .map_or(f32::NAN, |value| value.get::<crate::units::time::second>())
+    }
+
+    pub(crate) fn time_to_empty_ffi(&self) -> c_float {
+        self.time_to_empty()
+            .map_or(f32::NAN, |value| value.get::<crate::units::time::second>())
+    }
+
+    pub(crate) fn temperature_ffi(&self) -> c_float {
+        self.temperature().map_or(core::f32::NAN, |value| {
+            value.get::<crate::units::thermodynamic_temperature::kelvin>()
+        })
+    }
+
+    pub(crate) fn cycle_count_ffi(&self) -> u32 {
+        self.cycle_count().unwrap_or(core::u32::MAX)
+    }
+
+    pub(crate) fn vendor_ffi(&self) -> Option<String> {
+        self.vendor().map(str::to_owned)
+    }
+
+    pub(crate) fn model_ffi(&self) -> Option<String> {
+        self.model().map(str::to_owned)
+    }
+
+    pub(crate) fn serial_number_ffi(&self) -> Option<String> {
+        self.serial_number().map(str::to_owned)
+    }
+}
 impl fmt::Debug for Battery {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Battery")

@@ -78,6 +78,39 @@ impl From<io::Error> for Error {
     }
 }
 
+#[cfg(feature = "export")]
+use std::cell::RefCell;
+
+#[cfg(feature = "export")]
+thread_local! {
+    static LAST_FFI_ERROR: RefCell<Option<Box<dyn StdError>>> = RefCell::new(None);
+}
+
+#[cfg(feature = "export")]
+pub(crate) fn set_ffi_error<E: StdError + 'static>(error: E) {
+    LAST_FFI_ERROR.with(|previous| *previous.borrow_mut() = Some(Box::new(error)));
+}
+
+#[cfg(feature = "export")]
+pub(crate) fn clear_ffi_error() {
+    LAST_FFI_ERROR.with(|previous| *previous.borrow_mut() = None);
+}
+
+#[cfg(feature = "export")]
+pub fn battery_have_last_error() -> core::ffi::c_int {
+    LAST_FFI_ERROR.with(|previous| i32::from(previous.borrow().is_some()))
+}
+
+#[cfg(feature = "export")]
+fn take_ffi_error() -> Option<Box<dyn StdError>> {
+    LAST_FFI_ERROR.with(|previous| previous.borrow_mut().take())
+}
+
+#[cfg(feature = "export")]
+pub(crate) fn battery_last_error_message() -> Option<String> {
+    take_ffi_error().map(|error| error.to_string())
+}
+
 #[cfg(any(target_os = "dragonfly", target_os = "freebsd"))]
 mod nix_impl {
     use std::io;

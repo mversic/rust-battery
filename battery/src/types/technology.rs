@@ -4,7 +4,9 @@ use std::str;
 use crate::Error;
 
 /// Possible battery technologies.
+#[cfg_attr(feature = "co3", derive(co3::rust_spec::RustSpec, co3::ReprC))]
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
+#[repr(u8)]
 pub enum Technology {
     Unknown,
     LithiumIon,
@@ -18,7 +20,7 @@ pub enum Technology {
 
     // Awaiting for https://github.com/rust-lang/rust/issues/44109
     #[doc(hidden)]
-    __Nonexhaustive,
+    __Nonexhaustive = 255,
 }
 
 impl str::FromStr for Technology {

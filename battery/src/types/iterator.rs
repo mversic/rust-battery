@@ -27,6 +27,22 @@ impl Iterator for Batteries {
         self.0.size_hint()
     }
 }
+#[cfg(feature = "export")]
+impl Batteries {
+    pub(crate) fn next_ffi(&mut self) -> Option<Box<Battery>> {
+        match self.next() {
+            None => {
+                crate::errors::clear_ffi_error();
+                None
+            }
+            Some(Ok(battery)) => Some(Box::new(battery)),
+            Some(Err(error)) => {
+                crate::errors::set_ffi_error(error);
+                None
+            }
+        }
+    }
+}
 
 impl From<PlatformIterator> for Batteries {
     fn from(inner: PlatformIterator) -> Batteries {

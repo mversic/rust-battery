@@ -1,8 +1,8 @@
-// 1. Build `battery-ffi` crate and copy `battery_ffi.h` from the `OUT_DIR`
-// (it is probably somewhere at `target/*/build/battery-ffi-*/out/`)
+// 1. Build `battery` with the `export` feature and copy `battery_ffi.h` from the `OUT_DIR`
+// (it is probably somewhere at `target/*/build/battery-*/out/`)
 // next to this file.
 //
-// 2. Run `gcc ffi.c /path/to/libbattery_ffi.so`
+// 2. Run `gcc ffi.c /path/to/libbattery.so`
 //
 // 3. Run `./a.out`
 
@@ -10,42 +10,36 @@
 #include <stdio.h>
 #include <float.h>
 #include <limits.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 #include "battery_ffi.h"
 
+static void print_string(BatteryString value) {
+    if (value.data == NULL) {
+        printf("N/A\n");
+    } else {
+        printf("%.*s\n", (int)value.len, (const char *)value.data);
+        battery_str_free(value);
+    }
+}
+
 void pretty_print(Battery *battery, uint32_t *idx) {
-    printf("Device:\t\t\t%d\n", *idx);
+    printf("Device:\t\t\t%u\n", *idx);
 
     printf("vendor:\t\t\t");
-    char *vendor = battery_get_vendor(battery);
-    if (vendor == NULL) {
-        printf("N/A\n");
-    } else {
-        printf("%s\n", vendor);
-        battery_str_free(vendor);
-    }
+    print_string(battery_get_vendor(battery));
 
     printf("model:\t\t\t");
-    char *model = battery_get_model(battery);
-    if (model == NULL) {
-        printf("N/A\n");
-    } else {
-        printf("%s\n", model);
-        battery_str_free(model);
-    }
+    print_string(battery_get_model(battery));
 
     printf("S/N:\t\t\t");
-    char *sn = battery_get_serial_number(battery);
-    if (sn == NULL) {
-        printf("N/A\n");
-    } else {
-        printf("%s\n", sn);
-        battery_str_free(sn);
-    }
+    print_string(battery_get_serial_number(battery));
 
     printf("battery\n");
     printf("  state:\t\t");
-    uint8_t state = battery_get_state(battery);
+    State state = battery_get_state(battery);
     switch (state) {
         case StateUnknown:
             printf("unknown\n");
@@ -100,14 +94,14 @@ void pretty_print(Battery *battery, uint32_t *idx) {
             break;
     }
 
-    uint64_t time_to_full = battery_get_time_to_full(battery);
+    float time_to_full = battery_get_time_to_full(battery);
     if ((state == StateCharging) && (time_to_full > 0)) {
-        printf("  time-to-full:\t\t%ld sec.\n", time_to_full);
+        printf("  time-to-full:\t\t%.2f sec.\n", time_to_full);
     }
 
-    uint64_t time_to_empty = battery_get_time_to_empty(battery);
+    float time_to_empty = battery_get_time_to_empty(battery);
     if ((state == StateDischarging) && (time_to_empty > 0)) {
-        printf("  time-to-empty:\t\t%ld sec.\n", time_to_empty);
+        printf("  time-to-empty:\t\t%.2f sec.\n", time_to_empty);
     }
 
     printf("  state of charge:\t%.2f %%\n", battery_get_state_of_charge(battery));
@@ -123,32 +117,32 @@ void pretty_print(Battery *battery, uint32_t *idx) {
     uint32_t cycle_count = battery_get_cycle_count(battery);
     printf("  cycle-count:\t\t");
     if (cycle_count < UINT_MAX) {
-        printf("%d\n", cycle_count);
+        printf("%u\n", cycle_count);
     } else {
         printf("N/A\n");
     }
 }
 
 void print_error() {
-    int length = battery_last_error_length();
-    char *message = malloc(length);
-    // Handle possible error return here
-    battery_last_error_message(message, strlen(message));
-    printf("%s", message);
-    free(message);
+    BatteryString message = battery_last_error_message();
+    if (message.data != NULL) {
+        fwrite(message.data, 1, message.len, stdout);
+        battery_str_free(message);
+    }
 }
 
-void main() {
+int main(void) {
     Manager *manager = battery_manager_new();
     if (manager == NULL) {
         print_error();
-        return;
+        return 1;
     }
 
     Batteries *iterator = battery_manager_iter(manager);
     if (iterator == NULL) {
         print_error();
-        return;
+        battery_manager_free(manager);
+        return 1;
     }
 
     uint32_t idx = 0;
@@ -169,4 +163,5 @@ void main() {
 
     battery_iterator_free(iterator);
     battery_manager_free(manager);
+    return 0;
 }
