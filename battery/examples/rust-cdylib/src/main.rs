@@ -1,4 +1,4 @@
-use battery::{Manager, battery_have_last_error, battery_last_error_length, battery_last_error_message};
+use battery::{Manager, battery_last_error_length, battery_last_error_message};
 use std::io;
 
 fn last_error() -> io::Error {
@@ -19,14 +19,10 @@ fn last_error() -> io::Error {
 
 fn main() -> io::Result<()> {
     let manager = Manager::new_ffi().ok_or_else(last_error)?;
-    let mut batteries = manager.batteries_ffi().ok_or_else(last_error)?;
+    let batteries = manager.batteries_ffi().ok_or_else(last_error)?;
 
-    loop {
-        let battery = match batteries.next_ffi() {
-            Some(battery) => battery,
-            None if battery_have_last_error() != 0 => return Err(last_error()),
-            None => break,
-        };
+    for battery in batteries {
+        let battery = battery.map_err(|error| io::Error::new(io::ErrorKind::Other, error))?;
 
         let vendor = battery.vendor_ffi();
         let model = battery.model_ffi();

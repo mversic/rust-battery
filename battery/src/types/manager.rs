@@ -28,8 +28,7 @@ pub struct Manager {
 }
 
 impl Manager {
-    /// Creates new manager value.
-    pub fn new() -> Result<Manager> {
+    fn try_new() -> Result<Manager> {
         let inner = PlatformManager::new()?;
 
         Ok(Manager {
@@ -37,14 +36,7 @@ impl Manager {
         })
     }
 
-    /// Returns an iterator over available batteries.
-    ///
-    /// There are no guarantees provided for [batteries] ordering,
-    /// multiple calls to this method might result in any particular order
-    /// depending on underline OS implementation.
-    ///
-    /// [batteries]: struct.Battery.html
-    pub fn batteries(&self) -> Result<Batteries> {
+    fn try_batteries(&self) -> Result<Batteries> {
         let inner = PlatformIterator::new(self.inner.clone())?;
 
         Ok(Batteries::from(inner))
@@ -55,26 +47,33 @@ impl Manager {
         self.inner.refresh(battery)
     }
 }
-#[cfg(feature = "export")]
+
+#[cfg(not(feature = "export"))]
 impl Manager {
-    pub(crate) fn new_ffi() -> Option<Box<Manager>> {
-        match Manager::new() {
-            Ok(manager) => Some(Box::new(manager)),
-            Err(error) => {
-                crate::errors::set_ffi_error(error);
-                None
-            }
-        }
+    /// Creates new manager value.
+    pub fn new() -> Result<Manager> {
+        Self::try_new()
     }
 
-    pub(crate) fn batteries_ffi(&self) -> Option<Box<Batteries>> {
-        match self.batteries() {
-            Ok(iterator) => Some(Box::new(iterator)),
-            Err(error) => {
-                crate::errors::set_ffi_error(error);
-                None
-            }
-        }
+    /// Returns an iterator over available batteries.
+    ///
+    /// There are no guarantees provided for [batteries] ordering,
+    /// multiple calls to this method might result in any particular order
+    /// depending on underline OS implementation.
+    ///
+    /// [batteries]: struct.Battery.html
+    pub fn batteries(&self) -> Result<Batteries> {
+        self.try_batteries()
+    }
+}
+#[cfg(feature = "export")]
+impl Manager {
+    pub fn new() -> Option<Box<Manager>> {
+        crate::errors::into_ffi_option(Self::try_new().map(Box::new))
+    }
+
+    pub fn batteries(&self) -> Option<Box<Batteries>> {
+        crate::errors::into_ffi_option(self.try_batteries().map(Box::new))
     }
 }
 

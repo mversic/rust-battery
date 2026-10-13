@@ -100,6 +100,20 @@ pub(crate) fn clear_ffi_error() {
 }
 
 #[cfg(feature = "export")]
+pub(crate) fn into_ffi_option<T>(result: Result<T>) -> Option<T> {
+    match result {
+        Ok(value) => {
+            clear_ffi_error();
+            Some(value)
+        }
+        Err(error) => {
+            set_ffi_error(error);
+            None
+        }
+    }
+}
+
+#[cfg(feature = "export")]
 pub fn battery_have_last_error() -> core::ffi::c_int {
     LAST_FFI_ERROR.with(|previous| i32::from(previous.borrow().is_some()))
 }

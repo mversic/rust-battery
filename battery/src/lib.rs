@@ -96,15 +96,10 @@ co3::ffi! {
 
     impl Manager {
         #[symbol_name = "battery_manager_new"]
-        pub fn new_ffi() -> move Option<OwnedManager>;
+        pub fn new() -> move Option<OwnedManager>;
 
         #[symbol_name = "battery_manager_iter"]
-        pub fn batteries_ffi(&self) -> move Option<OwnedBatteries>;
-    }
-
-    impl Batteries {
-        #[symbol_name = "battery_iterator_next"]
-        pub fn next_ffi(&mut self) -> move Option<OwnedBattery>;
+        pub fn batteries(&self) -> move Option<OwnedBatteries>;
     }
 
     impl Battery {
@@ -115,46 +110,53 @@ co3::ffi! {
         pub fn technology(&self) -> Technology;
 
         #[symbol_name = "battery_get_state_of_charge"]
-        pub fn state_of_charge_ffi(&self) -> c_float;
+        pub fn state_of_charge(&self) -> c_float;
 
         #[symbol_name = "battery_get_energy"]
-        pub fn energy_ffi(&self) -> c_float;
+        pub fn energy(&self) -> c_float;
 
         #[symbol_name = "battery_get_energy_full"]
-        pub fn energy_full_ffi(&self) -> c_float;
+        pub fn energy_full(&self) -> c_float;
 
         #[symbol_name = "battery_get_energy_full_design"]
-        pub fn energy_full_design_ffi(&self) -> c_float;
+        pub fn energy_full_design(&self) -> c_float;
 
         #[symbol_name = "battery_get_energy_rate"]
-        pub fn energy_rate_ffi(&self) -> c_float;
+        pub fn energy_rate(&self) -> c_float;
 
         #[symbol_name = "battery_get_voltage"]
-        pub fn voltage_ffi(&self) -> c_float;
+        pub fn voltage(&self) -> c_float;
 
         #[symbol_name = "battery_get_state_of_health"]
-        pub fn state_of_health_ffi(&self) -> c_float;
+        pub fn state_of_health(&self) -> c_float;
 
         #[symbol_name = "battery_get_time_to_full"]
-        pub fn time_to_full_ffi(&self) -> c_float;
+        pub fn time_to_full(&self) -> c_float;
 
         #[symbol_name = "battery_get_time_to_empty"]
-        pub fn time_to_empty_ffi(&self) -> c_float;
+        pub fn time_to_empty(&self) -> c_float;
 
         #[symbol_name = "battery_get_temperature"]
-        pub fn temperature_ffi(&self) -> c_float;
+        pub fn temperature(&self) -> c_float;
 
         #[symbol_name = "battery_get_cycle_count"]
-        pub fn cycle_count_ffi(&self) -> u32;
+        pub fn cycle_count(&self) -> u32;
 
         #[symbol_name = "battery_get_vendor"]
-        pub fn vendor_ffi(&self) -> move Option<BatteryString>;
+        pub fn vendor(&self) -> move Option<BatteryString>;
 
         #[symbol_name = "battery_get_model"]
-        pub fn model_ffi(&self) -> move Option<BatteryString>;
+        pub fn model(&self) -> move Option<BatteryString>;
 
         #[symbol_name = "battery_get_serial_number"]
-        pub fn serial_number_ffi(&self) -> move Option<BatteryString>;
+        pub fn serial_number(&self) -> move Option<BatteryString>;
+    }
+
+    impl Iterator for Batteries {
+        type Item = Option<OwnedBattery>;
+
+        fn next(&mut self) -> move Option<Self::Item>;
+        fn size_hint(&self) -> (usize, Option<usize>);
     }
 
     #[symbol_name = "battery_last_error_message"]
