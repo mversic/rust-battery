@@ -48,7 +48,7 @@ mod remote_string;
 mod platform;
 
 #[cfg(feature = "co3")]
-use core::ffi::{c_float, c_int};
+use co3::ffi::{c_float, c_int};
 #[cfg(feature = "export")]
 use std::ffi::CString;
 
@@ -155,7 +155,7 @@ co3::ffi! {
     impl Iterator for Batteries {
         type Item = Option<OwnedBattery>;
 
-        fn next(&mut self) -> move Option<Self::Item>;
+        fn next(&mut self) -> move Option<<Self as Iterator>::Item>;
         fn size_hint(&self) -> (usize, Option<usize>);
     }
 

@@ -13,6 +13,7 @@ use co3::{rust_spec::RustSpec, ReprC};
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[repr(u8)]
 pub enum State {
+    #[cfg_attr(feature = "co3", repr_c(allow_zero_tag))]
     Unknown,
     Charging,
     Discharging,

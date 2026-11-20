@@ -1,5 +1,7 @@
 //! Errors handling
 
+#[cfg(feature = "export")]
+use co3::ffi::c_int;
 use std::borrow::Cow;
 use std::error::Error as StdError;
 use std::fmt;
@@ -114,13 +116,13 @@ pub(crate) fn into_ffi_option<T>(result: Result<T>) -> Option<T> {
 }
 
 #[cfg(feature = "export")]
-pub fn battery_have_last_error() -> core::ffi::c_int {
-    LAST_FFI_ERROR.with(|previous| i32::from(previous.borrow().is_some()))
+pub fn battery_have_last_error() -> c_int {
+    LAST_FFI_ERROR.with(|previous| c_int::from(previous.borrow().is_some()))
 }
 
 #[cfg(feature = "export")]
-pub(crate) fn battery_last_error_length() -> core::ffi::c_int {
-    LAST_FFI_ERROR.with(|previous| match previous.borrow().as_ref() {
+pub(crate) fn battery_last_error_length() -> c_int {
+    c_int::new(LAST_FFI_ERROR.with(|previous| match previous.borrow().as_ref() {
         Some(error) => {
             let length = error.to_string().len();
             if length >= core::ffi::c_int::MAX as usize {
@@ -130,13 +132,13 @@ pub(crate) fn battery_last_error_length() -> core::ffi::c_int {
             }
         }
         None => 0,
-    })
+    }))
 }
 
 /// Copies the message and consumes it only after a successful write.
 #[cfg(feature = "export")]
-pub(crate) fn battery_last_error_message(buffer: &mut [u8]) -> core::ffi::c_int {
-    LAST_FFI_ERROR.with(|previous| {
+pub(crate) fn battery_last_error_message(buffer: &mut [u8]) -> c_int {
+    c_int::new(LAST_FFI_ERROR.with(|previous| {
         let mut previous = previous.borrow_mut();
         let error = match previous.as_ref() {
             Some(error) => error,
@@ -151,7 +153,7 @@ pub(crate) fn battery_last_error_message(buffer: &mut [u8]) -> core::ffi::c_int 
         buffer[message.len()] = 0;
         *previous = None;
         message.len() as core::ffi::c_int
-    })
+    }))
 }
 
 #[cfg(any(target_os = "dragonfly", target_os = "freebsd"))]

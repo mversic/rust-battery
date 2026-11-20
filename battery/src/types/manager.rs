@@ -23,6 +23,8 @@ use crate::{Batteries, Battery, Result};
 /// ```
 ///
 /// [batteries]: struct.Battery.html
+#[cfg_attr(feature = "co3", derive(co3::rust_spec::RustSpec))]
+#[cfg_attr(feature = "co3", rust_spec(opaque))]
 pub struct Manager {
     inner: Rc<PlatformManager>,
 }

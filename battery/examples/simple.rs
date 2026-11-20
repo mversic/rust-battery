@@ -4,23 +4,48 @@ use std::io;
 use std::thread;
 use std::time::Duration;
 
+#[cfg(not(feature = "co3"))]
 fn main() -> battery::Result<()> {
     let manager = battery::Manager::new()?;
-    let mut battery = match manager.batteries()?.next() {
-        Some(Ok(battery)) => battery,
-        Some(Err(e)) => {
-            eprintln!("Unable to access battery information");
-            return Err(e);
-        }
-        None => {
-            eprintln!("Unable to find any batteries");
-            return Err(io::Error::from(io::ErrorKind::NotFound).into());
-        }
-    };
 
     loop {
-        println!("{:?}", battery);
+        let mut batteries = manager.batteries()?;
+        let battery = batteries
+            .next()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Unable to find any batteries"))??;
+        let charge = battery.state_of_charge().get::<battery::units::ratio::percent>();
+
+        println!(
+            "State: {}, technology: {}, charge: {:.1}%",
+            battery.state(),
+            battery.technology(),
+            charge,
+        );
         thread::sleep(Duration::from_secs(1));
-        manager.refresh(&mut battery)?;
+    }
+}
+
+#[cfg(feature = "co3")]
+fn main() -> battery::Result<()> {
+    let manager = battery::Manager::new()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Unable to create battery manager"))?;
+
+    loop {
+        let mut batteries = manager
+            .batteries()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Unable to enumerate batteries"))?;
+        let battery = batteries
+            .next()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Unable to find any batteries"))?
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Unable to access battery information"))?;
+        let charge = f32::from(battery.state_of_charge());
+
+        println!(
+            "State: {}, technology: {}, charge: {:.1}%",
+            battery.state(),
+            battery.technology(),
+            charge,
+        );
+        thread::sleep(Duration::from_secs(1));
     }
 }

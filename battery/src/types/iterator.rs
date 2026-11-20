@@ -10,6 +10,8 @@ use crate::{Battery, Result};
 ///
 /// [batteries]: struct.Battery.html
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[cfg_attr(feature = "co3", derive(co3::rust_spec::RustSpec))]
+#[cfg_attr(feature = "co3", rust_spec(opaque))]
 pub struct Batteries(PlatformIterator);
 
 impl Batteries {

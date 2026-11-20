@@ -1,5 +1,7 @@
 #[cfg(feature = "export")]
-use std::ffi::{CString, c_float};
+use std::ffi::CString;
+#[cfg(feature = "export")]
+use co3::ffi::c_float;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 
@@ -18,6 +20,8 @@ use crate::{State, Technology};
 /// represented as a units from the [uom](https://crates.io/crates/uom) crate.\
 /// If you are unfamiliar with `uom`, check the [units](./units/) module documentation for a few examples
 /// of how to get the values from them.
+#[cfg_attr(feature = "co3", derive(co3::rust_spec::RustSpec))]
+#[cfg_attr(feature = "co3", rust_spec(opaque))]
 pub struct Battery(Device)
 where
     Device: BatteryDevice;
@@ -209,49 +213,58 @@ impl Battery {
     pub fn state_of_charge(&self) -> c_float {
         self.state_of_charge_value()
             .get::<crate::units::ratio::percent>()
+            .into()
     }
 
     pub fn energy(&self) -> c_float {
         self.energy_value().get::<crate::units::energy::joule>()
+            .into()
     }
 
     pub fn energy_full(&self) -> c_float {
         self.energy_full_value().get::<crate::units::energy::joule>()
+            .into()
     }
 
     pub fn energy_full_design(&self) -> c_float {
         self.energy_full_design_value()
             .get::<crate::units::energy::joule>()
+            .into()
     }
 
     pub fn energy_rate(&self) -> c_float {
         self.energy_rate_value().get::<crate::units::power::watt>()
+            .into()
     }
 
     pub fn voltage(&self) -> c_float {
         self.voltage_value()
             .get::<crate::units::electric_potential::volt>()
+            .into()
     }
 
     pub fn state_of_health(&self) -> c_float {
         self.state_of_health_value()
             .get::<crate::units::ratio::percent>()
+            .into()
     }
 
     pub fn time_to_full(&self) -> c_float {
         self.time_to_full_value()
             .map_or(f32::NAN, |value| value.get::<crate::units::time::second>())
+            .into()
     }
 
     pub fn time_to_empty(&self) -> c_float {
         self.time_to_empty_value()
             .map_or(f32::NAN, |value| value.get::<crate::units::time::second>())
+            .into()
     }
 
     pub fn temperature(&self) -> c_float {
         self.temperature_value().map_or(f32::NAN, |value| {
             value.get::<crate::units::thermodynamic_temperature::kelvin>()
-        })
+        }).into()
     }
 
     pub fn cycle_count(&self) -> u32 {

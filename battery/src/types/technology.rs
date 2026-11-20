@@ -11,6 +11,7 @@ use crate::Error;
 #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 #[repr(u8)]
 pub enum Technology {
+    #[cfg_attr(feature = "co3", repr_c(allow_zero_tag))]
     Unknown,
     LithiumIon,
     LeadAcid,

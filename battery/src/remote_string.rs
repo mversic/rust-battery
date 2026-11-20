@@ -6,10 +6,11 @@ use co3::{ReprC, ffi::c_char, rust_spec::RustSpec};
 /// An owned UTF-8 string returned by the battery library.
 #[derive(RustSpec, ReprC)]
 #[rust_spec(custom_drop)]
-#[repr_c(is_valid = |ptr| unsafe {
-    // If battery doesn't nul terminate this is UB
-    CStr::from_ptr(ptr.as_ptr().cast()) }.to_str().is_ok()
-)]
+#[repr_c(is_valid = |ptr| {
+    // If battery doesn't nul terminate this is UB.
+    let cstr = unsafe { CStr::from_ptr(ptr.as_ptr().cast()) };
+    cstr.to_str().is_ok()
+})]
 #[repr(transparent)]
 pub struct RemoteString(NonNull<c_char>);
 
